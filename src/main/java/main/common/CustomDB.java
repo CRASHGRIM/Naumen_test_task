@@ -189,10 +189,17 @@ public class CustomDB {
         return findByQuery(comparer);
     }
 
+    public String getAll()
+    {
+        Function<Note, Boolean> comparer = (Note x)-> true;
+        return findByQuery(comparer);
+    }
+
     private String findByQuery(Function<Note, Boolean> comparer)
     {
         var folder = new File(System.getProperty("user.dir")+"/DBrecords");
         StringBuilder outString = new StringBuilder();
+        outString.append('[');
         for (final File fileEntry : folder.listFiles()) {
             if (!fileEntry.isDirectory()) {
 
@@ -216,6 +223,7 @@ public class CustomDB {
                         if (comparer.apply(note))
                         {
                             outString.append(readedline);
+                            outString.append(",");
                         }
 
 
@@ -224,7 +232,7 @@ public class CustomDB {
                 catch (Exception e)
                 {
                     System.out.println("error with reading");
-                    scanner.close();  //здесь надо бы поинтеллектуальнее свалиться
+                    scanner.close();  //ToDO здесь надо бы поинтеллектуальнее свалиться
                 }
                 scanner.close();
 
@@ -232,6 +240,9 @@ public class CustomDB {
 
             }
         }
+        if (outString.charAt(outString.length()-1)==',')
+            outString.replace(outString.length()-1, outString.length(), "");
+        outString.append(']');
         return outString.toString();
     }
 
