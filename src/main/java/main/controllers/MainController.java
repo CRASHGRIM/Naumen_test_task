@@ -67,6 +67,12 @@ public class MainController {
         return customDB.findByContent(content);
     }*/
 
+    @PutMapping("/notes/{id}")
+    void updateNoteByID(@PathVariable Long id, @RequestBody String toUpdate)
+    {
+        customDB.updateNoteByID(id, toUpdate);
+    }
+
     @DeleteMapping("/notes/{id}")
     void deleteNoteByID(@PathVariable Long id) {
         customDB.DeleteLineByID(id); //ToDo проверить что такая строка вообще была

@@ -3,6 +3,8 @@ package main.common;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import main.models.Note;
+import netscape.javascript.JSObject;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -244,6 +246,87 @@ public class CustomDB {
             outString.replace(outString.length()-1, outString.length(), "");
         outString.append(']');
         return outString.toString();
+    }
+
+    public void updateNoteByID(Long ID, String toUpdate)
+    {
+        var fragName = getFragmentNameFromID(ID);
+
+        try {
+            File myObj = new File(fragName+"_temp");
+            myObj.createNewFile();
+        } catch (IOException e) {
+            System.out.println("Error when creating temp fragment");
+            e.printStackTrace();
+            return;
+        }
+
+        FileWriter DBwriter = null;
+
+        try {
+            DBwriter = new FileWriter(fragName+"_temp", true);
+            //DBwriter.write(note.toString());
+            //DBwriter.write("\n");
+        } catch (IOException e) {
+            System.out.println("Error when creating writer");
+            e.printStackTrace();
+        }
+
+        Scanner scanner;
+        Path path = Paths.get(fragName);
+        try {
+            scanner = new Scanner(path);
+        }
+        catch (IOException e)
+        {
+            System.out.println("Error when finding fragment to read");
+            return;
+        }
+
+        scanner.useDelimiter(System.getProperty("line.separator"));
+        try{
+            while (scanner.hasNext())
+            {
+                var readedline = scanner.nextLine();
+                if (getIDFromLine(readedline)!=ID)
+                {
+                    DBwriter.write(readedline);
+                    DBwriter.write("\n");
+                }
+                else
+                {
+                    var readedlineParsed = new JSONObject(readedline);
+                    var toUpdateParsed = new JSONObject(toUpdate);
+                    if (toUpdateParsed.has("content"))
+                        readedlineParsed.put("content", toUpdateParsed.get("content"));
+                    if (toUpdateParsed.has("title"))
+                        readedlineParsed.put("title", toUpdateParsed.get("title"));
+                    DBwriter.write(readedlineParsed.toString());
+                    DBwriter.write("\n");
+                }
+
+
+            }
+            DBwriter.close();
+        }
+        catch (Exception e)
+        {
+            System.out.println("error with writing temp");
+            try{
+                DBwriter.close();
+            }
+            catch (Exception r)
+            {
+                System.out.println("problems with writer closing");
+            }
+            scanner.close();  //здесь надо бы поинтеллектуальнее свалиться
+        }
+        scanner.close();
+        File oldFragment = new File(fragName);
+        oldFragment.delete();
+        File newFragment = new File(fragName+"_temp");
+        newFragment.renameTo(oldFragment);
+
     }
 
 }
