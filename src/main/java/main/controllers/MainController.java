@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 public class MainController {
@@ -28,9 +29,16 @@ public class MainController {
 
 
     @GetMapping("/notes")
-    ResponseEntity<String> getNotes() {
-        var allNotes = customDB.getAll();
-        return new ResponseEntity<String>(allNotes, HttpStatus.OK);
+    ResponseEntity<String> getNotes(@RequestParam("title") Optional<String> title,
+                                    @RequestParam("content") Optional<String> content) {
+        String outList = "";
+        if (!title.isPresent() && !content.isPresent())
+            outList = customDB.getAll();
+        else if (title.isPresent())
+            outList = customDB.findByTitle(title.get());
+        else if (content.isPresent())
+            outList = customDB.findByContent(content.get());
+        return new ResponseEntity<String>(outList, HttpStatus.OK);
     }
 
 
@@ -57,17 +65,6 @@ public class MainController {
         return new ResponseEntity<String>(customDB.GetRecordById(id), HttpStatus.OK); //ToDO если пришла пустая строка то стоит возвращать 400
     }
 
-    /*@GetMapping("/notes")
-    String getNoteByTitle(@RequestParam String title){
-
-        return customDB.findByTitle(title);
-    }*/
-
-    /*@GetMapping("/notes")
-    String getNoteByContent(@RequestParam String content){
-
-        return customDB.findByContent(content);
-    }*/
 
     @PutMapping("/notes/{id}")
     void updateNoteByID(@PathVariable Long id, @RequestBody String toUpdate)
