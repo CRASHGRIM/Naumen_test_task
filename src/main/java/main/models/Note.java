@@ -1,6 +1,7 @@
 package main.models;
 
 import com.google.gson.Gson;
+import org.json.JSONObject;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,11 +15,13 @@ public class Note {
     private String content;
     private static Long currentIndex = 0L;
 
-    public Note(String content)
+    public Note(String JSONstring)
     {
-        this.id = createID();
-        this.content = content;
-        this.title = "";
+        var parsedNote = new JSONObject(JSONstring);
+        if (parsedNote.has("title"))
+            this.title = parsedNote.getString("title");
+        if (parsedNote.has("content"))
+            this.content = parsedNote.getString("content");
     }
 
     public Note(String title, String content)

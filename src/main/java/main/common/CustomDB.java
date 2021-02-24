@@ -4,14 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import main.models.Note;
 import netscape.javascript.JSObject;
+import org.aspectj.weaver.ast.Not;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.function.Function;
 
@@ -19,6 +24,8 @@ import java.util.function.Function;
 public class CustomDB {
 
     private int fragmentantion;
+
+    private SearchTree searchTree;
 
     private ConfProperties properties;
 
@@ -34,6 +41,8 @@ public class CustomDB {
 
         this.properties = confProperties;
         fragmentantion = properties.fragmentSize;
+        var tree = new Tree('a');
+        searchTree = new SearchTree(tree);
     }
 
     public void WriteNote(Note note)
@@ -62,6 +71,9 @@ public class CustomDB {
             System.out.println("Error when writing note to fragment");
             e.printStackTrace();
         }
+
+
+        searchTree.Add(note.getTitle(), note.getId());
 
 
 
@@ -100,6 +112,8 @@ public class CustomDB {
 
     public void DeleteLineByID(long ID){
         var fragName = getFragmentNameFromID(ID);
+
+        String title = ""; // нужен для того чтобы в дереве быстро найти индекс не перебирая все дерево
 
         try {
             File myObj = new File(fragName+"_temp");
@@ -142,6 +156,11 @@ public class CustomDB {
                     DBwriter.write(readedline);
                     DBwriter.write("\n");
                 }
+                else
+                {
+                    var parsedObj = new JSONObject(readedline);
+                    title = parsedObj.getString("title"); // нужно для более быстрого удаления строки из дерева
+                }
 
 
             }
@@ -165,6 +184,8 @@ public class CustomDB {
         File newFragment = new File(fragName+"_temp");
         newFragment.renameTo(oldFragment);
 
+        searchTree.Delete(title, ID);
+
     }
 
     private String getFragmentNameFromID(long ID)
@@ -181,17 +202,25 @@ public class CustomDB {
         return note.getId();
     }
 
-    private Note getNoteFromLine(String line)
-    {
-        var gson = new Gson();
-        return gson.fromJson(line, Note.class);
-    }
 
     public String findByTitle(String title)
     {
         Function<Note, Boolean> comparer = (Note x)-> x.getTitle().equals(title);
-        return findByQuery(comparer);
+        var found = searchTree.Search(title);
+        Collections.sort(found);
+        var outString = new StringBuilder();
+        outString.append('[');
+        for (Long index:found)
+        {
+            outString.append(GetRecordById(index));
+            outString.append(',');
+        }
+        if (outString.charAt(outString.length()-1)==',')
+            outString.replace(outString.length()-1, outString.length(), "");
+        outString.append(']');
+        return outString.toString();
     }
+
 
     public String findByContent(String content)
     {
@@ -229,7 +258,7 @@ public class CustomDB {
                     while (scanner.hasNext())
                     {
                         var readedline = scanner.nextLine();
-                        var note = getNoteFromLine(readedline);
+                        var note = new Note(readedline);
                         if (comparer.apply(note))
                         {
                             outString.append(readedline);
