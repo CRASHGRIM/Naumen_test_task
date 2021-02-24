@@ -1,6 +1,7 @@
 package main.controllers;
 
 import com.google.gson.Gson;
+import main.common.ConfProperties;
 import main.common.CustomDB;
 import main.models.Note;
 import org.aspectj.weaver.patterns.HasMemberTypePatternForPerThisMatching;
@@ -17,11 +18,12 @@ public class MainController {
 
     private CustomDB customDB;
 
-    private int titleMaxLength = 10; //ToDo вынести константу в конфиги
+    private int titleMaxLength;
 
 
-    MainController() {
-        customDB = new CustomDB();
+    MainController(ConfProperties properties) {
+        customDB = new CustomDB(properties);
+        titleMaxLength = properties.titleSize;
     }
 
 

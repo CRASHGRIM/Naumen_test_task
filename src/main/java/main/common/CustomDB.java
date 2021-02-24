@@ -5,6 +5,9 @@ import com.google.gson.JsonParser;
 import main.models.Note;
 import netscape.javascript.JSObject;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -12,11 +15,14 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.function.Function;
 
+@Component
 public class CustomDB {
 
     private int fragmentantion;
 
-    public CustomDB() {
+    private ConfProperties properties;
+
+    public CustomDB(ConfProperties confProperties) {
         File DBdir = new File(System.getProperty("user.dir")+"/DBrecords");
         if (DBdir.exists()){
             for(File file: DBdir.listFiles())
@@ -25,7 +31,9 @@ public class CustomDB {
         }
         else
             DBdir.mkdirs();
-        fragmentantion = 1000;
+
+        this.properties = confProperties;
+        fragmentantion = properties.fragmentSize;
     }
 
     public void WriteNote(Note note)

@@ -2,6 +2,7 @@ package DBTests;
 
 
 import main.MainApp;
+import main.common.ConfProperties;
 import main.common.CustomDB;
 import main.models.Note;
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class DBtests {
 
     @Test
-    public void WriteToDBTest()
+    public void WriteToDBTest(ConfProperties properties)
     {
-        var DB = new CustomDB();
+        var DB = new CustomDB(properties);
         var note = new Note("aaaaa", "bbb");
         System.out.println(note.toString());
         for(int i=0;i<10;i++)
@@ -28,9 +29,9 @@ public class DBtests {
     }
 
     @Test
-    public void WriteDeleteToDBTest()
+    public void WriteDeleteToDBTest(ConfProperties properties)
     {
-        var DB = new CustomDB();
+        var DB = new CustomDB(properties);
         for(int i=0;i<10;i++)
         {
             var note = new Note("aaaaa", "bbb");
@@ -41,9 +42,9 @@ public class DBtests {
     }
 
     @Test
-    public void FindByTitleToDBTest()
+    public void FindByTitleToDBTest(ConfProperties properties)
     {
-        var DB = new CustomDB();
+        var DB = new CustomDB(properties);
         for(int i=1;i<10;i++)
         {
             var note = new Note(String.valueOf(i), "bbb");
