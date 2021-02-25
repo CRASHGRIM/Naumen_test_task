@@ -1,21 +1,13 @@
 package main.common;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import main.models.Note;
-import netscape.javascript.JSObject;
-import org.aspectj.weaver.ast.Not;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.function.Function;
@@ -25,7 +17,7 @@ public class CustomDB {
 
     private int fragmentantion;
 
-    private SearchTree searchTree;
+    private SearchTree titleSearchTree;
 
     private ConfProperties properties;
 
@@ -41,8 +33,7 @@ public class CustomDB {
 
         this.properties = confProperties;
         fragmentantion = properties.fragmentSize;
-        var tree = new Tree('a');
-        searchTree = new SearchTree(tree);
+        titleSearchTree = new SearchTree("title");
     }
 
     public void WriteNote(Note note)
@@ -73,7 +64,7 @@ public class CustomDB {
         }
 
 
-        searchTree.Add(note.getTitle(), note.getId());
+        titleSearchTree.Add(note.getTitle(), note.getId());
 
 
 
@@ -184,7 +175,7 @@ public class CustomDB {
         File newFragment = new File(fragName+"_temp");
         newFragment.renameTo(oldFragment);
 
-        searchTree.Delete(title, ID);
+        titleSearchTree.Delete(title, ID);
 
     }
 
@@ -206,7 +197,7 @@ public class CustomDB {
     public String findByTitle(String title)
     {
         Function<Note, Boolean> comparer = (Note x)-> x.getTitle().equals(title);
-        var found = searchTree.Search(title);
+        var found = titleSearchTree.Search(title);
         Collections.sort(found);
         var outString = new StringBuilder();
         outString.append('[');
@@ -287,7 +278,7 @@ public class CustomDB {
 
     public void updateNoteByID(Long ID, String toUpdate)
     {
-        var fragName = getFragmentNameFromID(ID);
+        var fragName = getFragmentNameFromID(ID); // TODO нужно апдейтить еще и в индексах
 
         try {
             File myObj = new File(fragName+"_temp");
