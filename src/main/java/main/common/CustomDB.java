@@ -19,6 +19,8 @@ public class CustomDB {
 
     private SearchTree titleSearchTree;
 
+    private SearchTree contentSearchTree;
+
     private ConfProperties properties;
 
     public CustomDB(ConfProperties confProperties) {
@@ -33,7 +35,8 @@ public class CustomDB {
 
         this.properties = confProperties;
         fragmentantion = properties.fragmentSize;
-        titleSearchTree = new SearchTree("title");
+        titleSearchTree = new SearchTree("title", properties.indexFragmentSize);
+        contentSearchTree = new SearchTree("content", properties.indexFragmentSize);
     }
 
     public void WriteNote(Note note)
@@ -65,6 +68,7 @@ public class CustomDB {
 
 
         titleSearchTree.Add(note.getTitle(), note.getId());
+        contentSearchTree.Add(note.getContent(), note.getId());
 
 
 
@@ -105,6 +109,7 @@ public class CustomDB {
         var fragName = getFragmentNameFromID(ID);
 
         String title = ""; // нужен для того чтобы в дереве быстро найти индекс не перебирая все дерево
+        String content = "";
 
         try {
             File myObj = new File(fragName+"_temp");
@@ -151,6 +156,7 @@ public class CustomDB {
                 {
                     var parsedObj = new JSONObject(readedline);
                     title = parsedObj.getString("title"); // нужно для более быстрого удаления строки из дерева
+                    content = parsedObj.getString("content");
                 }
 
 
@@ -176,6 +182,7 @@ public class CustomDB {
         newFragment.renameTo(oldFragment);
 
         titleSearchTree.Delete(title, ID);
+        contentSearchTree.Delete(content, ID);
 
     }
 
@@ -196,7 +203,6 @@ public class CustomDB {
 
     public String findByTitle(String title)
     {
-        Function<Note, Boolean> comparer = (Note x)-> x.getTitle().equals(title);
         var found = titleSearchTree.Search(title);
         Collections.sort(found);
         var outString = new StringBuilder();
@@ -215,17 +221,22 @@ public class CustomDB {
 
     public String findByContent(String content)
     {
-        Function<Note, Boolean> comparer = (Note x)-> x.getContent().equals(content);
-        return findByQuery(comparer);
+        var found = contentSearchTree.Search(content);
+        Collections.sort(found);
+        var outString = new StringBuilder();
+        outString.append('[');
+        for (Long index:found)
+        {
+            outString.append(GetRecordById(index));
+            outString.append(',');
+        }
+        if (outString.charAt(outString.length()-1)==',')
+            outString.replace(outString.length()-1, outString.length(), "");
+        outString.append(']');
+        return outString.toString();
     }
 
-    public String getAll()
-    {
-        Function<Note, Boolean> comparer = (Note x)-> true;
-        return findByQuery(comparer);
-    }
-
-    private String findByQuery(Function<Note, Boolean> comparer)
+    public String getAll()  // TODO выдается содержимое всех файлов, надо отфильтровать только сами записи, возможно разделить по папкам
     {
         var folder = new File(System.getProperty("user.dir")+"/DBrecords");
         StringBuilder outString = new StringBuilder();
@@ -249,14 +260,8 @@ public class CustomDB {
                     while (scanner.hasNext())
                     {
                         var readedline = scanner.nextLine();
-                        var note = new Note(readedline);
-                        if (comparer.apply(note))
-                        {
-                            outString.append(readedline);
-                            outString.append(",");
-                        }
-
-
+                        outString.append(readedline);
+                        outString.append(",");
                     }
                 }
                 catch (Exception e)
@@ -276,9 +281,10 @@ public class CustomDB {
         return outString.toString();
     }
 
+
     public void updateNoteByID(Long ID, String toUpdate)
     {
-        var fragName = getFragmentNameFromID(ID); // TODO нужно апдейтить еще и в индексах
+        var fragName = getFragmentNameFromID(ID);
 
         try {
             File myObj = new File(fragName+"_temp");
@@ -293,8 +299,6 @@ public class CustomDB {
 
         try {
             DBwriter = new FileWriter(fragName+"_temp", true);
-            //DBwriter.write(note.toString());
-            //DBwriter.write("\n");
         } catch (IOException e) {
             System.out.println("Error when creating writer");
             e.printStackTrace();
@@ -325,10 +329,16 @@ public class CustomDB {
                 {
                     var readedlineParsed = new JSONObject(readedline);
                     var toUpdateParsed = new JSONObject(toUpdate);
-                    if (toUpdateParsed.has("content"))
+                    if (toUpdateParsed.has("content")) {
+                        contentSearchTree.Delete(readedlineParsed.getString("content"), readedlineParsed.getLong("id"));
+                        contentSearchTree.Add(toUpdateParsed.getString("content"), readedlineParsed.getLong("id"));
                         readedlineParsed.put("content", toUpdateParsed.get("content"));
-                    if (toUpdateParsed.has("title"))
+                    }
+                    if (toUpdateParsed.has("title")) {
+                        titleSearchTree.Delete(readedlineParsed.getString("title"), readedlineParsed.getLong("id"));
+                        titleSearchTree.Add(toUpdateParsed.getString("title"), readedlineParsed.getLong("id"));
                         readedlineParsed.put("title", toUpdateParsed.get("title"));
+                    }
                     DBwriter.write(readedlineParsed.toString());
                     DBwriter.write("\n");
                 }
@@ -340,6 +350,7 @@ public class CustomDB {
         catch (Exception e)
         {
             System.out.println("error with writing temp");
+            e.printStackTrace();
             try{
                 DBwriter.close();
             }

@@ -14,11 +14,12 @@ public class SearchTree {
 
     private Long index;
     private String indexParameterName;
-    private Long fragmentation = 500L; // ToDo вынести в конфиг
+    private int fragmentation;
 
 
-    public SearchTree(String indexParameterName) {
+    public SearchTree(String indexParameterName, int fragmentSize) {
         index = 0L;
+        fragmentation = fragmentSize;
         this.indexParameterName = indexParameterName;
         AddNewEntry();
     }

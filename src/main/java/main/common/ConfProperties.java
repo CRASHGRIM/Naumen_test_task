@@ -15,6 +15,9 @@ public class ConfProperties {
     @Value("${fragmentSize}")
     public int fragmentSize;
 
+    @Value("${indexFragmentSize}")
+    public int indexFragmentSize;
+
     @Value("${titleSize}")
     public int titleSize;
 
