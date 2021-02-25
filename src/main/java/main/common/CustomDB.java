@@ -48,7 +48,7 @@ public class CustomDB {
     public void writeNote(Note note)
     {
         long fragmentIndex = note.getId()-note.getId()%fragmentantion;
-        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/%s.txt", Long.toString(fragmentIndex));
+        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/records/%s.txt", Long.toString(fragmentIndex));
 
         if (note.getId()%fragmentantion==0)
         {
@@ -84,7 +84,7 @@ public class CustomDB {
     public String getRecordById(long ID){
 
         long fragmentIndex = ID-ID%fragmentantion;
-        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/%s.txt", Long.toString(fragmentIndex));
+        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/records/%s.txt", Long.toString(fragmentIndex));
 
         Scanner scanner;
         Path path = Paths.get(fragmentName);
@@ -194,7 +194,7 @@ public class CustomDB {
     private String getFragmentNameFromID(long ID)
     {
         long fragmentIndex = ID-ID%fragmentantion;
-        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/%s.txt", Long.toString(fragmentIndex));
+        var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/records/%s.txt", Long.toString(fragmentIndex));
         return fragmentName;
     }
 
@@ -243,7 +243,7 @@ public class CustomDB {
 
     public String getAll()  // TODO выдается содержимое всех файлов, надо отфильтровать только сами записи, возможно разделить по папкам
     {
-        var folder = new File(System.getProperty("user.dir")+"/DBrecords");
+        var folder = new File(System.getProperty("user.dir")+"/DBrecords/records");
         StringBuilder outString = new StringBuilder();
         outString.append('[');
         for (final File fileEntry : folder.listFiles()) {

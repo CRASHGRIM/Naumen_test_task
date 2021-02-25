@@ -148,7 +148,7 @@ public class SearchTree {
 
     public String getIndexFragmentNameByID(Long ID) {
         long fragmentIndex = ID - ID % fragmentation;
-        var fragmentName = String.format(System.getProperty("user.dir") + "/DBrecords/index_%s_%s.txt", indexParameterName, Long.toString(fragmentIndex));
+        var fragmentName = String.format(System.getProperty("user.dir") + "/DBrecords/indexes/index_%s_%s.txt", indexParameterName, Long.toString(fragmentIndex));
         return fragmentName;
     }
 
