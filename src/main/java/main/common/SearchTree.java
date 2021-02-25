@@ -21,17 +21,17 @@ public class SearchTree {
         index = 0L;
         fragmentation = fragmentSize;
         this.indexParameterName = indexParameterName;
-        AddNewEntry();
+        addNewEntry();
     }
 
-    public ArrayList<Long> Search(String searchString) {
+    public ArrayList<Long> search(String searchString) {
 
-        IndexTreeEntry currentEntry = GetRecord(0L);
+        IndexTreeEntry currentEntry = getRecord(0L);
         for (int i = 0; i < searchString.length(); i++) {
             if (currentEntry.getChilds().containsKey(searchString.charAt(i)))
             {
                 var newIndex = currentEntry.getChilds().get(searchString.charAt(i));
-                currentEntry = GetRecord(newIndex);
+                currentEntry = getRecord(newIndex);
             }
             else {
                 return new ArrayList<>(); // не смогли спуститься по всему слову, ничего не найдено
@@ -40,29 +40,29 @@ public class SearchTree {
         return currentEntry.getEndedStrings();
     }
 
-    public void Add(String text, long strIndex) {
-        IndexTreeEntry currentEntry = GetRecord(0L); // самая первая запись откуда начинается поиск
+    public void add(String text, long strIndex) {
+        IndexTreeEntry currentEntry = getRecord(0L); // самая первая запись откуда начинается поиск
         for (int i = 0; i < text.length(); i++) {
             if (currentEntry.getChilds().containsKey(text.charAt(i)))
             {
                 var newIndex = currentEntry.getChilds().get(text.charAt(i));
-                currentEntry = GetRecord(newIndex);
+                currentEntry = getRecord(newIndex);
             }
             else {
-                var newIndex = AddNewEntry();
-                currentEntry.AddChild(text.charAt(i), newIndex);
-                RewriteEntry(currentEntry);
+                var newIndex = addNewEntry();
+                currentEntry.addChild(text.charAt(i), newIndex);
+                rewriteEntry(currentEntry);
                 newIndex = currentEntry.getChilds().get(text.charAt(i));
-                currentEntry = GetRecord(newIndex);
+                currentEntry = getRecord(newIndex);
             }
         }
-        currentEntry.AddEndedString(strIndex);
-        RewriteEntry(currentEntry);
+        currentEntry.addEndedString(strIndex);
+        rewriteEntry(currentEntry);
     }
 
-    private void RewriteEntry(IndexTreeEntry entry)
+    private void rewriteEntry(IndexTreeEntry entry)
     {
-        var fragName = GetIndexFragmentNameByID(entry.getID());
+        var fragName = getIndexFragmentNameByID(entry.getID());
 
         try {
             File myObj = new File(fragName+"_temp");
@@ -130,30 +130,30 @@ public class SearchTree {
 
     }
 
-    public void Delete(String text, long strIndex) {
-        IndexTreeEntry currentEntry = GetRecord(0L); // самая первая запись откуда начинается поиск
+    public void delete(String text, long strIndex) {
+        IndexTreeEntry currentEntry = getRecord(0L); // самая первая запись откуда начинается поиск
         for (int i = 0; i < text.length(); i++) {
             if (currentEntry.getChilds().containsKey(text.charAt(i)))
             {
                 var newIndex = currentEntry.getChilds().get(text.charAt(i));
-                currentEntry = GetRecord(newIndex);
+                currentEntry = getRecord(newIndex);
             }
             else {
                 return;// такого слова не было в дереве
             }
-            currentEntry.DeleteEndedString(strIndex);
+            currentEntry.deleteEndedString(strIndex);
         }
     }
 
 
-    public String GetIndexFragmentNameByID(Long ID) {
+    public String getIndexFragmentNameByID(Long ID) {
         long fragmentIndex = ID - ID % fragmentation;
         var fragmentName = String.format(System.getProperty("user.dir") + "/DBrecords/index_%s_%s.txt", indexParameterName, Long.toString(fragmentIndex));
         return fragmentName;
     }
 
-    public IndexTreeEntry GetRecord(Long ID) {
-        var fragmentName = GetIndexFragmentNameByID(ID);
+    public IndexTreeEntry getRecord(Long ID) {
+        var fragmentName = getIndexFragmentNameByID(ID);
         Scanner scanner;
         Path path = Paths.get(fragmentName);
         try {
@@ -180,13 +180,13 @@ public class SearchTree {
 
     }
 
-    private Long AddNewEntry()
+    private Long addNewEntry()
     {
         var newEntry = new IndexTreeEntry(index);
         index++;
         Gson gson = new Gson();
         var serialised =  gson.toJson(newEntry);
-        var fragmentName = GetIndexFragmentNameByID(newEntry.getID());
+        var fragmentName = getIndexFragmentNameByID(newEntry.getID());
 
         if (newEntry.getID()%fragmentation==0)
         {

@@ -11,44 +11,56 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = MainApp.class)
 public class DBtests {
 
+
+    private int titleMaxLength;
+
+    private ConfProperties properties;
+
+
+
+    DBtests(ConfProperties properties) {
+        this.properties = properties;
+        titleMaxLength = properties.titleSize;
+    }
+
     @Test
-    public void WriteToDBTest(ConfProperties properties)
+    public void writeToDBTest()
     {
         var DB = new CustomDB(properties);
         var note = new Note("aaaaa", "bbb");
         System.out.println(note.toString());
         for(int i=0;i<10;i++)
         {
-            DB.WriteNote(note);
+            DB.writeNote(note);
         }
         for(int i=0;i<10;i++)
         {
-            var readed = DB.GetRecordById(i);
+            var readed = DB.getRecordById(i);
             assert readed.equals(note.toString());
         }
     }
 
     @Test
-    public void WriteDeleteToDBTest(ConfProperties properties)
+    public void writeDeleteToDBTest()
     {
         var DB = new CustomDB(properties);
         for(int i=0;i<10;i++)
         {
             var note = new Note("aaaaa", "bbb");
-            DB.WriteNote(note);
+            DB.writeNote(note);
         }
-        DB.DeleteLineByID(3L);
-        DB.DeleteLineByID(7L);
+        DB.deleteLineByID(3L);
+        DB.deleteLineByID(7L);
     }
 
     @Test
-    public void FindByTitleToDBTest(ConfProperties properties)
+    public void findByTitleToDBTest()
     {
         var DB = new CustomDB(properties);
         for(int i=1;i<10;i++)
         {
             var note = new Note(String.valueOf(i), "bbb");
-            DB.WriteNote(note);
+            DB.writeNote(note);
         }
         System.out.println(DB.findByTitle("7"));
         assert DB.findByTitle("7").equals("{\"id\":7,\"title\":\"7\",\"content\":\"bbb\"}");

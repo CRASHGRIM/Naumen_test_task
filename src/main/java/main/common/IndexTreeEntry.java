@@ -33,17 +33,17 @@ public class IndexTreeEntry {
         return ID;
     }
 
-    public void AddChild(char letter, Long childID)
+    public void addChild(char letter, Long childID)
     {
         this.childs.put(letter, childID);
     }
 
-    public void AddEndedString(Long index)
+    public void addEndedString(Long index)
     {
         endedStrings.add(index);
     }
 
-    public void DeleteEndedString(Long index)
+    public void deleteEndedString(Long index)
     {
         endedStrings.remove((Long) index);
     }

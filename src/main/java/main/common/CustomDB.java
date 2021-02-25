@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Scanner;
-import java.util.function.Function;
 
 @Component
 public class CustomDB {
@@ -24,14 +23,9 @@ public class CustomDB {
     private ConfProperties properties;
 
     public CustomDB(ConfProperties confProperties) {
-        File DBdir = new File(System.getProperty("user.dir")+"/DBrecords");
-        if (DBdir.exists()){
-            for(File file: DBdir.listFiles())
-                if (!file.isDirectory())
-                    file.delete();
-        }
-        else
-            DBdir.mkdirs();
+        makeDirectory("/DBrecords");
+        makeDirectory("/DBrecords/indexes");
+        makeDirectory("/DBrecords/records");
 
         this.properties = confProperties;
         fragmentantion = properties.fragmentSize;
@@ -39,7 +33,19 @@ public class CustomDB {
         contentSearchTree = new SearchTree("content", properties.indexFragmentSize);
     }
 
-    public void WriteNote(Note note)
+    private void makeDirectory(String path)
+    {
+        File dirToCreate = new File(System.getProperty("user.dir")+path);
+        if (dirToCreate.exists()){
+            for(File file: dirToCreate.listFiles())
+                if (!file.isDirectory())
+                    file.delete();
+        }
+        else
+            dirToCreate.mkdirs();
+    }
+
+    public void writeNote(Note note)
     {
         long fragmentIndex = note.getId()-note.getId()%fragmentantion;
         var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/%s.txt", Long.toString(fragmentIndex));
@@ -67,15 +73,15 @@ public class CustomDB {
         }
 
 
-        titleSearchTree.Add(note.getTitle(), note.getId());
-        contentSearchTree.Add(note.getContent(), note.getId());
+        titleSearchTree.add(note.getTitle(), note.getId());
+        contentSearchTree.add(note.getContent(), note.getId());
 
 
 
 
     }
 
-    public String GetRecordById(long ID){
+    public String getRecordById(long ID){
 
         long fragmentIndex = ID-ID%fragmentantion;
         var fragmentName = String.format(System.getProperty("user.dir")+"/DBrecords/%s.txt", Long.toString(fragmentIndex));
@@ -105,7 +111,7 @@ public class CustomDB {
 
     }
 
-    public void DeleteLineByID(long ID){
+    public boolean deleteLineByID(long ID){
         var fragName = getFragmentNameFromID(ID);
 
         String title = ""; // нужен для того чтобы в дереве быстро найти индекс не перебирая все дерево
@@ -117,17 +123,15 @@ public class CustomDB {
         } catch (IOException e) {
             System.out.println("Error when creating temp fragment");
             e.printStackTrace();
-            return;
+            return false;
         }
 
         FileWriter DBwriter = null;
 
         try {
             DBwriter = new FileWriter(fragName+"_temp", true);
-            //DBwriter.write(note.toString());
-            //DBwriter.write("\n");
         } catch (IOException e) {
-            System.out.println("Error when creating writer");
+            System.out.println("Error when creating writer"); // ToDo удалить файлы и выйти
             e.printStackTrace();
         }
 
@@ -139,10 +143,11 @@ public class CustomDB {
         catch (IOException e)
         {
             System.out.println("Error when finding fragment to read");
-            return;
+            return false;
         }
 
         scanner.useDelimiter(System.getProperty("line.separator"));
+        Boolean isRecordFound = false;
         try{
             while (scanner.hasNext())
             {
@@ -157,9 +162,8 @@ public class CustomDB {
                     var parsedObj = new JSONObject(readedline);
                     title = parsedObj.getString("title"); // нужно для более быстрого удаления строки из дерева
                     content = parsedObj.getString("content");
+                    isRecordFound = true;
                 }
-
-
             }
             DBwriter.close();
         }
@@ -181,8 +185,9 @@ public class CustomDB {
         File newFragment = new File(fragName+"_temp");
         newFragment.renameTo(oldFragment);
 
-        titleSearchTree.Delete(title, ID);
-        contentSearchTree.Delete(content, ID);
+        titleSearchTree.delete(title, ID);
+        contentSearchTree.delete(content, ID);
+        return isRecordFound;
 
     }
 
@@ -203,13 +208,13 @@ public class CustomDB {
 
     public String findByTitle(String title)
     {
-        var found = titleSearchTree.Search(title);
+        var found = titleSearchTree.search(title);
         Collections.sort(found);
         var outString = new StringBuilder();
         outString.append('[');
         for (Long index:found)
         {
-            outString.append(GetRecordById(index));
+            outString.append(getRecordById(index));
             outString.append(',');
         }
         if (outString.charAt(outString.length()-1)==',')
@@ -221,13 +226,13 @@ public class CustomDB {
 
     public String findByContent(String content)
     {
-        var found = contentSearchTree.Search(content);
+        var found = contentSearchTree.search(content);
         Collections.sort(found);
         var outString = new StringBuilder();
         outString.append('[');
         for (Long index:found)
         {
-            outString.append(GetRecordById(index));
+            outString.append(getRecordById(index));
             outString.append(',');
         }
         if (outString.charAt(outString.length()-1)==',')
@@ -330,13 +335,13 @@ public class CustomDB {
                     var readedlineParsed = new JSONObject(readedline);
                     var toUpdateParsed = new JSONObject(toUpdate);
                     if (toUpdateParsed.has("content")) {
-                        contentSearchTree.Delete(readedlineParsed.getString("content"), readedlineParsed.getLong("id"));
-                        contentSearchTree.Add(toUpdateParsed.getString("content"), readedlineParsed.getLong("id"));
+                        contentSearchTree.delete(readedlineParsed.getString("content"), readedlineParsed.getLong("id"));
+                        contentSearchTree.add(toUpdateParsed.getString("content"), readedlineParsed.getLong("id"));
                         readedlineParsed.put("content", toUpdateParsed.get("content"));
                     }
                     if (toUpdateParsed.has("title")) {
-                        titleSearchTree.Delete(readedlineParsed.getString("title"), readedlineParsed.getLong("id"));
-                        titleSearchTree.Add(toUpdateParsed.getString("title"), readedlineParsed.getLong("id"));
+                        titleSearchTree.delete(readedlineParsed.getString("title"), readedlineParsed.getLong("id"));
+                        titleSearchTree.add(toUpdateParsed.getString("title"), readedlineParsed.getLong("id"));
                         readedlineParsed.put("title", toUpdateParsed.get("title"));
                     }
                     DBwriter.write(readedlineParsed.toString());

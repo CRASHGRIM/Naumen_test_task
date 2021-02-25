@@ -1,11 +1,1 @@
-{"ID":0,"endedStrings":[],"childs":{"b":1,"u":4}}
-{"ID":1,"endedStrings":[],"childs":{"b":2}}
-{"ID":2,"endedStrings":[],"childs":{"b":3}}
-{"ID":3,"endedStrings":[1,2],"childs":{}}
-{"ID":4,"endedStrings":[],"childs":{"p":5}}
-{"ID":5,"endedStrings":[],"childs":{"d":6}}
-{"ID":6,"endedStrings":[],"childs":{"a":7}}
-{"ID":7,"endedStrings":[],"childs":{"t":8}}
-{"ID":8,"endedStrings":[],"childs":{"t":9}}
-{"ID":9,"endedStrings":[],"childs":{"t":10}}
-{"ID":10,"endedStrings":[1],"childs":{}}
+{"ID":0,"endedStrings":[],"childs":{}}

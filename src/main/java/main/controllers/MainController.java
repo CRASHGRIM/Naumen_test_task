@@ -4,14 +4,11 @@ import com.google.gson.Gson;
 import main.common.ConfProperties;
 import main.common.CustomDB;
 import main.models.Note;
-import org.aspectj.weaver.patterns.HasMemberTypePatternForPerThisMatching;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
@@ -55,26 +52,33 @@ public class MainController {
             title = parsedNote.getString("content").substring(0, titleMaxLength);
         String content = parsedNote.getString("content");
         Note note = new Note(title, content);
-        customDB.WriteNote(note);
+        customDB.writeNote(note);
         Gson gson = new Gson();
         return new ResponseEntity<String>(gson.toJson(note), HttpStatus.OK);
     }
 
     @GetMapping("/notes/{id}")
     ResponseEntity<String> getNoteByID(@PathVariable Long id) {
-        return new ResponseEntity<String>(customDB.GetRecordById(id), HttpStatus.OK); //ToDO если пришла пустая строка то стоит возвращать 400
+        var foundRecord = customDB.getRecordById(id);
+        if (foundRecord.equals(""))
+            return new ResponseEntity<String>("record not found", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<String>(foundRecord, HttpStatus.OK);
     }
 
 
     @PutMapping("/notes/{id}")
     void updateNoteByID(@PathVariable Long id, @RequestBody String toUpdate)
     {
-        customDB.updateNoteByID(id, toUpdate);
+        customDB.updateNoteByID(id, toUpdate); // ToDo проверить была ли такая запись
     }
 
     @DeleteMapping("/notes/{id}")
-    void deleteNoteByID(@PathVariable Long id) {
-        customDB.DeleteLineByID(id); //ToDo проверить что такая строка вообще была
+    ResponseEntity deleteNoteByID(@PathVariable Long id) {
+        var isRecordExisted = customDB.deleteLineByID(id);
+        if (isRecordExisted)
+            return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+
     }
 
 }
