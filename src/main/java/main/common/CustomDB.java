@@ -241,12 +241,15 @@ public class CustomDB {
         return outString.toString();
     }
 
-    public String getAll()  // TODO выдается содержимое всех файлов, надо отфильтровать только сами записи, возможно разделить по папкам
+    public String getAll()
     {
         var folder = new File(System.getProperty("user.dir")+"/DBrecords/records");
         StringBuilder outString = new StringBuilder();
         outString.append('[');
-        for (final File fileEntry : folder.listFiles()) {
+        var fragments = folder.listFiles();
+        if (fragments==null)
+            return "[]";
+        for (final File fileEntry : fragments) {
             if (!fileEntry.isDirectory()) {
 
                 Scanner scanner;
@@ -257,7 +260,7 @@ public class CustomDB {
                 catch (IOException e)
                 {
                     System.out.println("Error when finding fragment to read");
-                    return "";
+                    continue;
                 }
 
                 scanner.useDelimiter(System.getProperty("line.separator"));
@@ -272,12 +275,10 @@ public class CustomDB {
                 catch (Exception e)
                 {
                     System.out.println("error with reading");
-                    scanner.close();  //ToDO здесь надо бы поинтеллектуальнее свалиться
+                    scanner.close();
+                    continue;
                 }
                 scanner.close();
-
-
-
             }
         }
         if (outString.charAt(outString.length()-1)==',')
@@ -287,7 +288,7 @@ public class CustomDB {
     }
 
 
-    public void updateNoteByID(Long ID, String toUpdate)
+    public boolean updateNoteByID(Long ID, String toUpdate)
     {
         var fragName = getFragmentNameFromID(ID);
 
@@ -297,7 +298,7 @@ public class CustomDB {
         } catch (IOException e) {
             System.out.println("Error when creating temp fragment");
             e.printStackTrace();
-            return;
+            return false;
         }
 
         FileWriter DBwriter = null;
@@ -317,8 +318,10 @@ public class CustomDB {
         catch (IOException e)
         {
             System.out.println("Error when finding fragment to read");
-            return;
+            return false;
         }
+
+        var isUpdated = false;
 
         scanner.useDelimiter(System.getProperty("line.separator"));
         try{
@@ -346,6 +349,7 @@ public class CustomDB {
                     }
                     DBwriter.write(readedlineParsed.toString());
                     DBwriter.write("\n");
+                    isUpdated = true;
                 }
 
 
@@ -363,13 +367,15 @@ public class CustomDB {
             {
                 System.out.println("problems with writer closing");
             }
-            scanner.close();  //здесь надо бы поинтеллектуальнее свалиться
+            scanner.close(); 
         }
         scanner.close();
         File oldFragment = new File(fragName);
         oldFragment.delete();
         File newFragment = new File(fragName+"_temp");
         newFragment.renameTo(oldFragment);
+
+        return isUpdated;
 
     }
 

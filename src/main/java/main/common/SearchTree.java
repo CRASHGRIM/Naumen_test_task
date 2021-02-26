@@ -120,7 +120,7 @@ public class SearchTree {
             {
                 System.out.println("problems with index writer closing");
             }
-            scanner.close();  //ToDo здесь надо бы поинтеллектуальнее свалиться
+            scanner.close();
         }
         scanner.close();
         File oldFragment = new File(fragName);
@@ -169,10 +169,10 @@ public class SearchTree {
         while (scanner.hasNext())
         {
             var readedline = scanner.nextLine();
-            if (new JSONObject(readedline).getLong("ID") ==ID)// TODO возможно стоит искать по индексам и не удалять строки
+            if (new JSONObject(readedline).getLong("ID") ==ID)
             {
                 scanner.close();
-                Gson gson = new Gson(); // Or use new GsonBuilder().create();
+                Gson gson = new Gson();
                 return gson.fromJson(readedline, IndexTreeEntry.class);
             }
         }

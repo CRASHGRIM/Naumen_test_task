@@ -67,9 +67,12 @@ public class MainController {
 
 
     @PutMapping("/notes/{id}")
-    void updateNoteByID(@PathVariable Long id, @RequestBody String toUpdate)
+    ResponseEntity updateNoteByID(@PathVariable Long id, @RequestBody String toUpdate)
     {
-        customDB.updateNoteByID(id, toUpdate); // ToDo проверить была ли такая запись
+        var isUpdated = customDB.updateNoteByID(id, toUpdate);
+        if (isUpdated)
+            return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/notes/{id}")

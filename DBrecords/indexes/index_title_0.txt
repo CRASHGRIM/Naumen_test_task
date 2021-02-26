@@ -1,5 +1,1 @@
-{"ID":0,"endedStrings":[],"childs":{"a":1}}
-{"ID":1,"endedStrings":[],"childs":{"a":2}}
-{"ID":2,"endedStrings":[],"childs":{"a":3,"b":4}}
-{"ID":3,"endedStrings":[1,2],"childs":{}}
-{"ID":4,"endedStrings":[3],"childs":{}}
+{"ID":0,"endedStrings":[],"childs":{}}
