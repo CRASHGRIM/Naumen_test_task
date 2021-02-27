@@ -21,4 +21,7 @@ public class ConfProperties {
     @Value("${titleSize}")
     public int titleSize;
 
+    @Value("${garbageCollectionFrequency}")
+    public int garbageCollectionFrequency;
+
 }

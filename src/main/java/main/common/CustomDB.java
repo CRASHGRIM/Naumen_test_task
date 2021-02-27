@@ -22,6 +22,10 @@ public class CustomDB {
 
     private ConfProperties properties;
 
+    private int recordCounter;
+
+    private int garbageCollectionFrequency;
+
     public CustomDB(ConfProperties confProperties) {
         makeDirectory("/DBrecords");
         makeDirectory("/DBrecords/indexes");
@@ -31,6 +35,8 @@ public class CustomDB {
         fragmentantion = properties.fragmentSize;
         titleSearchTree = new SearchTree("title", properties.indexFragmentSize);
         contentSearchTree = new SearchTree("content", properties.indexFragmentSize);
+        recordCounter = 0;
+        garbageCollectionFrequency = this.properties.garbageCollectionFrequency;
     }
 
     private void makeDirectory(String path)
@@ -75,10 +81,30 @@ public class CustomDB {
 
         titleSearchTree.add(note.getTitle(), note.getId());
         contentSearchTree.add(note.getContent(), note.getId());
+        recordCounter++;
+
+        if (recordCounter>=garbageCollectionFrequency)
+        {
+            recordCounter = 0;
+            deleteEmptyFragments();
+        }
 
 
 
 
+    }
+
+    private void deleteEmptyFragments()
+    {
+        File directory = new File(System.getProperty("user.dir")+"/DBrecords/records");
+        if (directory.exists()){
+            for(File file: directory.listFiles())
+                if (!file.isDirectory()) {
+                    if (file.length()==0)
+                        file.delete();
+
+                }
+        }
     }
 
     public String getRecordById(long ID){
