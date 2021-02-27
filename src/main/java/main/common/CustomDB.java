@@ -130,7 +130,7 @@ public class CustomDB {
     public boolean deleteLineByID(long ID){
         var fragName = getFragmentNameFromID(ID);
 
-        String title = ""; // нужен для того чтобы в дереве быстро найти индекс не перебирая все дерево
+        String title = ""; // нужен для того чтобы в дереве при удалении быстро найти индекс не перебирая все дерево
         String content = "";
 
         try {
@@ -191,12 +191,14 @@ public class CustomDB {
             System.out.println("error with writing temp");
             try{
                 DBwriter.close();
+                new File(fragName+"_temp").delete();
+
             }
             catch (Exception r)
             {
                 System.out.println("problems with writer closing");
             }
-            scanner.close();  //здесь надо бы поинтеллектуальнее свалиться
+            scanner.close();
         }
         scanner.close();
         File oldFragment = new File(fragName);
@@ -391,6 +393,7 @@ public class CustomDB {
             e.printStackTrace();
             try{
                 DBwriter.close();
+                new File(fragName+"_temp").delete();
             }
             catch (Exception r)
             {

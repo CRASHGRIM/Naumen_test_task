@@ -54,7 +54,7 @@ public class MainController {
         Note note = new Note(title, content);
         customDB.writeNote(note);
         Gson gson = new Gson();
-        return new ResponseEntity<String>(gson.toJson(note), HttpStatus.OK);
+        return new ResponseEntity<String>(gson.toJson(note), HttpStatus.CREATED);
     }
 
     @GetMapping("/notes/{id}")

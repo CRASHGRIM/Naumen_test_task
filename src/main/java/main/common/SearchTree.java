@@ -21,7 +21,7 @@ public class SearchTree {
         index = 0L;
         fragmentation = fragmentSize;
         this.indexParameterName = indexParameterName;
-        addNewEntry();
+        addNewIndexTreeEntry();
     }
 
     public ArrayList<Long> search(String searchString) {
@@ -49,7 +49,7 @@ public class SearchTree {
                 currentEntry = getRecord(newIndex);
             }
             else {
-                var newIndex = addNewEntry();
+                var newIndex = addNewIndexTreeEntry();
                 currentEntry.addChild(text.charAt(i), newIndex);
                 rewriteEntry(currentEntry);
                 newIndex = currentEntry.getChilds().get(text.charAt(i));
@@ -180,7 +180,7 @@ public class SearchTree {
 
     }
 
-    private Long addNewEntry()
+    private Long addNewIndexTreeEntry()
     {
         var newEntry = new IndexTreeEntry(index);
         index++;
