@@ -22,7 +22,7 @@ public class CustomDB {
 
     private ConfProperties properties;
 
-    private int recordCounter;
+    private int deleteCounter;
 
     private int garbageCollectionFrequency;
 
@@ -35,7 +35,7 @@ public class CustomDB {
         fragmentantion = properties.fragmentSize;
         titleSearchTree = new SearchTree("title", properties.indexFragmentSize);
         contentSearchTree = new SearchTree("content", properties.indexFragmentSize);
-        recordCounter = 0;
+        deleteCounter = 0;
         garbageCollectionFrequency = this.properties.garbageCollectionFrequency;
     }
 
@@ -81,16 +81,6 @@ public class CustomDB {
 
         titleSearchTree.add(note.getTitle(), note.getId());
         contentSearchTree.add(note.getContent(), note.getId());
-        recordCounter++;
-
-        if (recordCounter>=garbageCollectionFrequency)
-        {
-            recordCounter = 0;
-            deleteEmptyFragments();
-        }
-
-
-
 
     }
 
@@ -157,8 +147,11 @@ public class CustomDB {
         try {
             DBwriter = new FileWriter(fragName+"_temp", true);
         } catch (IOException e) {
-            System.out.println("Error when creating writer"); // ToDo удалить файлы и выйти
+            System.out.println("Error when creating writer");
+            File myObj = new File(fragName+"_temp");
+            myObj.delete();
             e.printStackTrace();
+            return false;
         }
 
         Scanner scanner;
@@ -213,6 +206,16 @@ public class CustomDB {
 
         titleSearchTree.delete(title, ID);
         contentSearchTree.delete(content, ID);
+
+        if (isRecordFound)
+            deleteCounter++;
+
+        if (deleteCounter>=garbageCollectionFrequency)
+        {
+            deleteCounter = 0;
+            deleteEmptyFragments();
+        }
+
         return isRecordFound;
 
     }
